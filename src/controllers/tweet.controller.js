@@ -30,7 +30,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
     // TODO: get user tweets
 
     const {userId} =  req.params
-
+    const {page=1 , limit=5} = req.query;
     const user = await User.findOne({
         $or:[{_id:userId}]
     })
@@ -43,9 +43,9 @@ const getUserTweets = asyncHandler(async (req, res) => {
             owner : user._id
         }
     },{
-        $project:{
-            content:1
-        }
+        $skip: (page-1)*limit
+    },{
+        $limit: page*limit
     }])
     if(!tweets){
         res.status(200).json(

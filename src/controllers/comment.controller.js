@@ -51,12 +51,6 @@ const getVideoComments = asyncHandler(async (req, res) => {
         )
     }
 
-    const commentsPageFinal =[]
-    await comments.forEach(e=>{
-        const e11 = {_id : e._id , content : e.content}
-        commentsPageFinal.push(e11)
-    })
-
     const commentOwnersPageFinal =[]
     await commentOwners.forEach(e=>{
         const e1 = {fullname: e._id[0].fullname , avatar : e._id[0].avatar}
@@ -64,7 +58,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
     })
 
     return res.status(200).json(
-        new ApiResponse(201,[commentOwnersPageFinal , commentsPageFinal ],"comments retrieved successfully")
+        new ApiResponse(201,[commentOwnersPageFinal , comments ],"comments retrieved successfully")
     )
 
 })
