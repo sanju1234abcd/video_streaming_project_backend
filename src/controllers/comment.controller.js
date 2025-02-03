@@ -44,21 +44,30 @@ const getVideoComments = asyncHandler(async (req, res) => {
     },{
         $limit: parseInt(limit)
     }])
+    
+    const commentsizeFinder = await Comment.aggregate([{
+        $match:{video : new mongoose.Types.ObjectId(videoId)}
+    }])
 
     if(!comments){
         return res.status(200).json(
             new ApiResponse(201,"no comments under this video")
         )
     }
+    const numberOfCommentsInEachComment = [];
+    for (let i1 = 0; i1 < comments.length; i1++) {
+        const size = await Comment.countDocuments({comment:comments[i1]._id});
+        numberOfCommentsInEachComment.push(size)
+    }
 
     const commentOwnersPageFinal =[]
-    await commentOwners.forEach(e=>{
+    commentOwners.forEach(e=>{
         const e1 = {fullname: e._id[0].fullname , avatar : e._id[0].avatar}
         commentOwnersPageFinal.push(e1)
     })
 
     return res.status(200).json(
-        new ApiResponse(201,[commentOwnersPageFinal , comments ],"comments retrieved successfully")
+        new ApiResponse(201,[commentOwnersPageFinal , comments , numberOfCommentsInEachComment ],`${commentsizeFinder.length}`)
     )
 
 })
@@ -102,30 +111,38 @@ const getcommentComments = asyncHandler(async(req,res)=>{
 
     const comments = await Comment.aggregate([{
         $match:{
-            comment: new mongoose.Types.ObjectId(commentId),
+            comment: new mongoose.Types.ObjectId(commentId)
         }
+    },{
+        $skip: (page-1)*limit
+    },{
+        $limit : parseInt(limit)
     }])
 
-    const commentsPage = await Comment.aggregatePaginate(comments,{
-        page:page,
-        pageSize:limit
-    })
+    const commentOwners = await Comment.aggregate([{
+        $match : {
+            comment : new mongoose.Types.ObjectId(commentId)
+        }
+    },{
+        $lookup:{
+            from:"users",
+            localField:"owner",
+            foreignField:"_id",
+            as:"_id"
+        }
+    },{
+        $project:{
+            username:1,
+            avatar:1
+        }
+    },{
+        $skip: (page-1)*limit
+    },{
+        $limit: parseInt(limit)
+    }])
 
-    if(!commentsPage ){
-        throw new ApiError(404,"Error while paginating the comments")
-    }
-    if(commentsPage.length == 0 ){
-        return res.status(200).json(
-            new ApiResponse(201,"no comments")
-        )
-    }
-    const commentsPageFinal =[]
-    await commentsPage.docs.forEach(e=>{
-        const e1 ={"content":e.content,"owner":e.owner}
-        commentsPageFinal.push(e1)
-    })
     return res.status(200).json(
-        new ApiResponse(201,commentsPageFinal,"comments retrieve successfully")
+        new ApiResponse(201,{comments,commentOwners},"comments retrieve successfully")
     )
 })
 
