@@ -26,22 +26,22 @@ const createPlaylist = asyncHandler(async (req, res) => {
 })
 
 const getUserPlaylists = asyncHandler(async (req, res) => {
-    const {userId} = req.params
-    //TODO: get user playlists
+
     const playlists = await Playlist.aggregate([{
         $match:{
-            owner: new mongoose.Types.ObjectId(userId)
+            owner: new mongoose.Types.ObjectId(req.user?._id)
         }
     },
     {
         $project:{
-            _id:1
+            _id:1,
+            name:1
         }
     }])
 
     if(playlists.length === 0 || !playlists){
         return res.status(200).json(
-            new ApiResponse(201,"no playlist is created by this user")
+            new ApiResponse(201,null,"no playlist is created by this user")
         )
     }
     else{

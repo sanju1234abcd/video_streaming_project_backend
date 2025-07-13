@@ -17,7 +17,7 @@ playlistRouter.use(verifyJWT); // Apply verifyJWT middleware to all routes in th
 playlistRouter.route("/").post(createPlaylist)
 
 playlistRouter
-    .route("/:playlistId")
+    .route("/customize/:playlistId")
     .get(getPlaylistById)
     .patch(updatePlaylist)
     .delete(deletePlaylist);
@@ -25,6 +25,6 @@ playlistRouter
 playlistRouter.route("/add/:videoId/:playlistId").patch(addVideoToPlaylist);
 playlistRouter.route("/remove/:videoId/:playlistId").patch(removeVideoFromPlaylist);
 
-playlistRouter.route("/user/:userId").get(getUserPlaylists);
+playlistRouter.route("/userPlaylist").get(getUserPlaylists);
 
 export default playlistRouter
